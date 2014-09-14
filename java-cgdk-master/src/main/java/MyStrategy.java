@@ -165,11 +165,11 @@ public final class MyStrategy implements Strategy {
 
     private double getInterceptDirection(Hockeyist hockeyist, World world) {
 
-        Hockeyist goalie = getMyGoalie(world);
+        Position netCenter = getNetCenter(world.getMyPlayer());
         Hockeyist opponent = getNearestOpponentToMyNet(world);
 
-        double x = (goalie.getX() + opponent.getX()) / 2;
-        double y = (goalie.getY() + opponent.getY()) / 2;
+        double x = (netCenter.getX() + opponent.getX()) / 2;
+        double y = (netCenter.getY() + opponent.getY()) / 2;
 
         return hockeyist.getAngleTo(x, y);
 
