@@ -40,7 +40,7 @@ public final class MyStrategy implements Strategy {
                     } else {
                         Hockeyist forward = getMyForward(world);
                         Position opponentNet = getNetCenter(world.getOpponentPlayer());
-                        if (isHockeyistOpen(forward, world, game)) {
+                        if (isMyHockeyistOpen(forward, world, game)) {
                             if (isHockeyistCanTakePass(self, forward, game) &&
                                     self.getDistanceTo(opponentNet.getX(), opponentNet.getY()) >
                                             forward.getDistanceTo(opponentNet.getX(), opponentNet.getY())) {
@@ -79,12 +79,12 @@ public final class MyStrategy implements Strategy {
     private Position getFuturePuckPosition(Hockeyist self, World world, Game game) {
         Puck puck = world.getPuck();
         double s = self.getDistanceTo(puck);
-        double v = (game.getHockeyistMaxSpeed() + getSpeed(self)) / 2;
+        double v = (game.getHockeyistMaxSpeed() + getUnitSpeed(self)) / 2;
         double t = s / v;
         return new Position(puck.getX() + puck.getSpeedX() * t, puck.getY() + puck.getSpeedY() * t);
     }
 
-    private double getSpeed(Unit self) {
+    private double getUnitSpeed(Unit self) {
         return Math.sqrt(self.getSpeedX() * self.getSpeedX() + self.getSpeedY() * self.getSpeedY());
     }
 
@@ -99,7 +99,7 @@ public final class MyStrategy implements Strategy {
     private void moveHockeyistTo(Hockeyist self, Move move, double x, double y, Game game) {
         double angle = self.getAngleTo(x, y);
         double distance = self.getDistanceTo(x, y);
-        double speed = getSpeed(self);
+        double speed = getUnitSpeed(self);
         double a = game.getHockeyistSpeedDownFactor();
         if (distance > (speed * speed)/(2 * a)) {
             move.setSpeedUp(1.0D);
@@ -112,14 +112,14 @@ public final class MyStrategy implements Strategy {
 
     private boolean isHockeyistCanTakePass(Hockeyist self, Hockeyist forward, Game game) {
         return self.getRemainingCooldownTicks() == 0
-                && self.getAngleTo(forward) < game.getPassSector() / 4;
+                && self.getAngleTo(forward) < game.getPassSector() / 2;
     }
 
-    private boolean isHockeyistOpen(Hockeyist forward, World world, Game game) {
+    private boolean isMyHockeyistOpen(Hockeyist forward, World world, Game game) {
         boolean open = true;
         for (Hockeyist hockeyist : world.getHockeyists()) {
-            if (hockeyist.getPlayerId() != forward.getPlayerId() &&
-                    forward.getDistanceTo(hockeyist) < game.getStickLength()) {
+            if (!hockeyist.isTeammate() &&
+                    forward.getDistanceTo(hockeyist) < game.getStickLength() + 10) {
                 open = false;
             }
         }
@@ -137,13 +137,13 @@ public final class MyStrategy implements Strategy {
     }
 
     private Hockeyist getMyDefender(World world) {
-        Hockeyist defander = null;
+        Hockeyist defender = null;
         for (Hockeyist hockeyist : world.getHockeyists()) {
             if (hockeyist.isTeammate() && isHockeyistDefender(hockeyist)) {
-                defander = hockeyist;
+                defender = hockeyist;
             }
         }
-        return defander;
+        return defender;
     }
 
     private boolean isHockeyistControlPuck(Puck puck, Hockeyist self) {
@@ -205,12 +205,13 @@ public final class MyStrategy implements Strategy {
     }
 
     private Hockeyist getMyGoalie(World world) {
+        Hockeyist goalie = null;
         for (Hockeyist hockeyist : world.getHockeyists()) {
             if (hockeyist.isTeammate() && hockeyist.getType() == HockeyistType.GOALIE) {
-                return hockeyist;
+                goalie = hockeyist;
             }
         }
-        return null;
+        return goalie;
     }
 
     private Position getNetCenter(Player player) {
